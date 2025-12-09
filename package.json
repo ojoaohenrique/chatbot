@@ -1,0 +1,33 @@
+{
+  "name": "chatbot-ia-profissional",
+  "version": "2.0.0",
+  "description": "Chat inteligente com IA usando OpenAI GPT - Versão profissional",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "echo \"Testes não configurados ainda\" && exit 0"
+  },
+  "keywords": [
+    "chatbot",
+    "openai",
+    "gpt",
+    "ai",
+    "chat",
+    "assistant"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "openai": "^4.58.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

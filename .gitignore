@@ -1,0 +1,50 @@
+# ========================================
+# GITIGNORE - Chat IA
+# ========================================
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Logs
+logs/
+*.log
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs e editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Build e cache
+dist/
+build/
+.cache/
+.temp/
+.tmp/
+
+# Testes
+coverage/
+.nyc_output/
+
+# Outros
+*.bak
+*.tmp
+.env.backup
