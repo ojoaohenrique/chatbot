@@ -19,6 +19,7 @@ const elements = {
     input: document.getElementById("userInput"),
     sendBtn: document.getElementById("sendBtn"),
     clearBtn: document.getElementById("clearBtn"),
+    exportBtn: document.getElementById("exportBtn"),
     chatArea: document.getElementById("chatArea"),
     scrollBottomBtn: document.getElementById("scrollBottomBtn"),
     charCount: document.getElementById("charCount"),
@@ -61,6 +62,9 @@ function setupEventListeners() {
     
     // Botão limpar
     elements.clearBtn.addEventListener("click", handleClearChat);
+    
+    // Botão exportar
+    elements.exportBtn.addEventListener("click", handleExportChat);
     
     // Input - Enter para enviar
     elements.input.addEventListener("keydown", (e) => {
@@ -235,12 +239,101 @@ async function handleSendMessage() {
 function addMessage(text, sender) {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add("message", sender);
-    messageDiv.textContent = text;
+    
+    // Container para conteúdo e ações
+    const contentWrapper = document.createElement("div");
+    contentWrapper.classList.add("message-content");
+    
+    // Processar markdown se for mensagem do bot
+    if (sender === "bot") {
+        contentWrapper.innerHTML = formatMarkdown(text);
+    } else {
+        contentWrapper.textContent = text;
+    }
+    
+    messageDiv.appendChild(contentWrapper);
+    
+    // Adicionar botão de copiar
+    if (sender === "bot" || sender === "user") {
+        const actionsDiv = document.createElement("div");
+        actionsDiv.classList.add("message-actions");
+        
+        const copyBtn = document.createElement("button");
+        copyBtn.classList.add("copy-btn-msg");
+        copyBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        `;
+        copyBtn.title = "Copiar mensagem";
+        copyBtn.onclick = () => copyMessage(text, copyBtn);
+        
+        actionsDiv.appendChild(copyBtn);
+        messageDiv.appendChild(actionsDiv);
+    }
     
     elements.chatArea.appendChild(messageDiv);
     scrollToBottom();
     
     return messageDiv;
+}
+
+// ========================================
+// FORMATAR MARKDOWN
+// ========================================
+
+function formatMarkdown(text) {
+    // Escape HTML
+    let html = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    
+    // Code blocks (```)
+    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    
+    // Inline code (`)
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Bold (**text**)
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    // Italic (*text*)
+    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    
+    // Links [text](url)
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    
+    // Line breaks
+    html = html.replace(/\n/g, '<br>');
+    
+    return html;
+}
+
+// ========================================
+// COPIAR MENSAGEM
+// ========================================
+
+function copyMessage(text, button) {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        `;
+        button.classList.add("copied");
+        
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.classList.remove("copied");
+        }, 2000);
+        
+        showToast("Mensagem copiada!", "success");
+    }).catch(() => {
+        showToast("Erro ao copiar mensagem", "error");
+    });
 }
 
 // ========================================
@@ -430,6 +523,42 @@ function loadConversationHistory() {
         console.error("Erro ao carregar histórico:", error);
         state.conversationHistory = [];
     }
+}
+
+// ========================================
+// EXPORTAR CONVERSA
+// ========================================
+
+function handleExportChat() {
+    if (state.conversationHistory.length === 0) {
+        showToast("Nenhuma conversa para exportar", "error");
+        return;
+    }
+    
+    // Criar conteúdo do arquivo
+    let content = "# Conversa com Assistente IA\n\n";
+    content += `Data: ${new Date().toLocaleString("pt-BR")}\n\n`;
+    content += "---\n\n";
+    
+    state.conversationHistory.forEach((msg, index) => {
+        const role = msg.role === "user" ? "👤 Você" : "🤖 Assistente";
+        content += `### ${role}\n\n`;
+        content += `${msg.content}\n\n`;
+        content += "---\n\n";
+    });
+    
+    // Criar e baixar arquivo
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `conversa-ia-${new Date().getTime()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast("Conversa exportada com sucesso!", "success");
 }
 
 // ========================================

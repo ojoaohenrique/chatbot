@@ -12,15 +12,15 @@ Chat profissional com Inteligência Artificial usando OpenAI GPT. Interface mode
 ## ✨ Características
 
 ### 🎨 Interface
-- ✅ Design moderno e profissional
+- ✅ Design moderno com gradientes vibrantes
 - ✅ Totalmente responsivo (mobile, tablet, desktop)
-- ✅ Tema escuro otimizado
-- ✅ Animações suaves
+- ✅ Tema escuro otimizado com efeitos glassmorphism
+- ✅ Animações suaves e transições fluidas
 - ✅ Indicador de status em tempo real
-- ✅ Notificações toast
+- ✅ Notificações toast elegantes
 - ✅ Contador de caracteres
 - ✅ Auto-resize do textarea
-- ✅ Botões de ação rápida
+- ✅ Botões de ação rápida com hover effects
 
 ### 🔒 Segurança
 - ✅ API Key protegida no backend
@@ -40,12 +40,15 @@ Chat profissional com Inteligência Artificial usando OpenAI GPT. Interface mode
 
 ### 🛠️ Funcionalidades
 - ✅ Conversas contextuais (mantém histórico)
-- ✅ Limpar conversa
-- ✅ Scroll automático
-- ✅ Indicador de digitação
+- ✅ **Suporte a Markdown** (negrito, itálico, código, links)
+- ✅ **Botão de copiar mensagens** com feedback visual
+- ✅ **Exportar conversa** em formato Markdown (.md)
+- ✅ Limpar conversa com confirmação
+- ✅ Scroll automático inteligente
+- ✅ Indicador de digitação animado
 - ✅ Mensagens de erro amigáveis
 - ✅ Suporte a Enter para enviar
-- ✅ Limite de caracteres
+- ✅ Limite de caracteres (4000)
 
 ---
 
@@ -211,6 +214,26 @@ Clique nos botões sugeridos para iniciar conversas rapidamente:
 - 🎯 Curiosidade
 - 🔧 Resolver problema
 
+### Recursos Avançados
+
+#### 📝 Suporte a Markdown
+As respostas da IA suportam formatação Markdown:
+- **Negrito**: `**texto**`
+- *Itálico*: `*texto*`
+- `Código inline`: \`código\`
+- Blocos de código: \`\`\`código\`\`\`
+- Links: `[texto](url)`
+
+#### 📋 Copiar Mensagens
+- Passe o mouse sobre qualquer mensagem
+- Clique no ícone de copiar que aparece
+- A mensagem será copiada para a área de transferência
+
+#### 💾 Exportar Conversa
+- Clique no botão de download no header
+- A conversa será exportada como arquivo `.md`
+- Formato compatível com editores Markdown
+
 ---
 
 ## 🔐 Segurança
@@ -313,7 +336,19 @@ npm start
 
 ## 📝 Changelog
 
-### Versão 2.0.0 (Atual)
+### Versão 2.1.0 (Atual)
+
+#### ✨ Novidades
+- 🎨 **Design modernizado** com gradientes roxo/azul
+- 📝 **Suporte a Markdown** nas respostas da IA
+- 📋 **Botão de copiar** em cada mensagem
+- 💾 **Exportar conversa** em formato Markdown
+- ✨ **Efeitos glassmorphism** e sombras com glow
+- 🎭 **Animações aprimoradas** com cubic-bezier
+- 🔘 **Botões com hover effects** 3D
+- 📱 **Responsividade melhorada**
+
+### Versão 2.0.0
 
 #### ✨ Novidades
 - Interface completamente redesenhada
