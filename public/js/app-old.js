@@ -6,7 +6,9 @@ const CONFIG = {
     API_URL: "/api/chat",
     HEALTH_CHECK_URL: "/api/health",
     MAX_MESSAGE_LENGTH: 4000,
+    TYPING_DELAY: 500,
     TOAST_DURATION: 3000,
+    AUTO_RESIZE_TEXTAREA: true,
 };
 
 // ========================================
@@ -15,12 +17,11 @@ const CONFIG = {
 
 const elements = {
     input: document.getElementById("userInput"),
-    submitBtn: document.getElementById("submitBtn"),
+    sendBtn: document.getElementById("sendBtn"),
     clearBtn: document.getElementById("clearBtn"),
-    chatForm: document.getElementById("chatForm"),
-    messagesWrapper: document.getElementById("messagesWrapper"),
-    messagesList: document.getElementById("messagesList"),
-    welcomeHeader: document.getElementById("welcomeHeader"),
+    exportBtn: document.getElementById("exportBtn"),
+    chatArea: document.getElementById("chatArea"),
+    scrollBottomBtn: document.getElementById("scrollBottomBtn"),
     charCount: document.getElementById("charCount"),
     statusDot: document.getElementById("statusDot"),
     statusText: document.getElementById("statusText"),
@@ -45,6 +46,9 @@ function init() {
     setupEventListeners();
     checkServerHealth();
     loadConversationHistory();
+    setupQuickActions();
+    
+    // Foco automático no input
     elements.input.focus();
 }
 
@@ -53,24 +57,53 @@ function init() {
 // ========================================
 
 function setupEventListeners() {
-    // Form submit
-    elements.chatForm.addEventListener("submit", handleSendMessage);
+    // Botão enviar
+    elements.sendBtn.addEventListener("click", handleSendMessage);
     
     // Botão limpar
     elements.clearBtn.addEventListener("click", handleClearChat);
+    
+    // Botão exportar
+    elements.exportBtn.addEventListener("click", handleExportChat);
     
     // Input - Enter para enviar
     elements.input.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            handleSendMessage(e);
+            handleSendMessage();
         }
     });
     
-    // Input - auto resize e contador
-    elements.input.addEventListener("input", () => {
-        handleInputResize();
-        updateCharCount();
+    // Input - auto resize
+    if (CONFIG.AUTO_RESIZE_TEXTAREA) {
+        elements.input.addEventListener("input", handleInputResize);
+    }
+    
+    // Input - contador de caracteres
+    elements.input.addEventListener("input", updateCharCount);
+    
+    // Scroll - mostrar botão de voltar ao fim
+    elements.chatArea.addEventListener("scroll", handleScroll);
+    
+    // Botão scroll to bottom
+    elements.scrollBottomBtn.addEventListener("click", scrollToBottom);
+}
+
+// ========================================
+// QUICK ACTIONS
+// ========================================
+
+function setupQuickActions() {
+    const quickBtns = document.querySelectorAll(".quick-btn");
+    quickBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const message = btn.getAttribute("data-message");
+            if (message) {
+                elements.input.value = message;
+                elements.input.focus();
+                handleSendMessage();
+            }
+        });
     });
 }
 
@@ -103,9 +136,7 @@ function updateStatus(isOnline, text) {
 // ENVIAR MENSAGEM
 // ========================================
 
-async function handleSendMessage(e) {
-    e.preventDefault();
-    
+async function handleSendMessage() {
     const text = elements.input.value.trim();
     
     // Validações
@@ -129,8 +160,8 @@ async function handleSendMessage(e) {
         return;
     }
     
-    // Remove header de boas-vindas
-    removeWelcomeHeader();
+    // Remove mensagem de boas-vindas
+    removeWelcomeMessage();
     
     // Adiciona mensagem do usuário
     addMessage(text, "user");
@@ -209,7 +240,7 @@ function addMessage(text, sender) {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add("message", sender);
     
-    // Container para conteúdo
+    // Container para conteúdo e ações
     const contentWrapper = document.createElement("div");
     contentWrapper.classList.add("message-content");
     
@@ -242,7 +273,7 @@ function addMessage(text, sender) {
         messageDiv.appendChild(actionsDiv);
     }
     
-    elements.messagesList.appendChild(messageDiv);
+    elements.chatArea.appendChild(messageDiv);
     scrollToBottom();
     
     return messageDiv;
@@ -320,7 +351,7 @@ function addTypingLoader() {
         </div>
     `;
     
-    elements.messagesList.appendChild(loaderDiv);
+    elements.chatArea.appendChild(loaderDiv);
     scrollToBottom();
     
     return loaderDiv;
@@ -342,24 +373,41 @@ function handleClearChat() {
     }
     
     if (confirm("Deseja limpar toda a conversa?")) {
-        elements.messagesList.innerHTML = "";
-        elements.welcomeHeader.style.display = "flex";
-        elements.messagesWrapper.classList.remove("has-messages");
+        elements.chatArea.innerHTML = `
+            <div class="welcome-message">
+                <div class="welcome-icon">👋</div>
+                <h2>Olá! Como posso ajudar?</h2>
+                <p>Faça qualquer pergunta ou inicie uma conversa</p>
+                
+                <div class="quick-actions">
+                    <button class="quick-btn" data-message="Explique o que é inteligência artificial">
+                        💡 O que é IA?
+                    </button>
+                    <button class="quick-btn" data-message="Me conte uma curiosidade interessante">
+                        🎯 Curiosidade
+                    </button>
+                    <button class="quick-btn" data-message="Me ajude a resolver um problema">
+                        🔧 Resolver problema
+                    </button>
+                </div>
+            </div>
+        `;
         
         state.conversationHistory = [];
         saveConversationHistory();
+        setupQuickActions();
         showToast("Conversa limpa com sucesso", "success");
     }
 }
 
 // ========================================
-// REMOVER HEADER DE BOAS-VINDAS
+// REMOVER MENSAGEM DE BOAS-VINDAS
 // ========================================
 
-function removeWelcomeHeader() {
-    if (elements.welcomeHeader.style.display !== "none") {
-        elements.welcomeHeader.style.display = "none";
-        elements.messagesWrapper.classList.add("has-messages");
+function removeWelcomeMessage() {
+    const welcomeMsg = document.querySelector(".welcome-message");
+    if (welcomeMsg) {
+        welcomeMsg.remove();
     }
 }
 
@@ -370,10 +418,13 @@ function removeWelcomeHeader() {
 function setLoadingState(isLoading) {
     state.isLoading = isLoading;
     elements.input.disabled = isLoading;
-    elements.submitBtn.disabled = isLoading;
+    elements.sendBtn.disabled = isLoading;
     elements.clearBtn.disabled = isLoading;
     
-    if (!isLoading) {
+    if (isLoading) {
+        elements.sendBtn.style.opacity = "0.5";
+    } else {
+        elements.sendBtn.style.opacity = "1";
         elements.input.focus();
     }
 }
@@ -396,9 +447,9 @@ function updateCharCount() {
     elements.charCount.textContent = `${count} / ${CONFIG.MAX_MESSAGE_LENGTH}`;
     
     if (count > CONFIG.MAX_MESSAGE_LENGTH * 0.9) {
-        elements.charCount.style.color = "var(--destructive)";
+        elements.charCount.style.color = "var(--accent-red)";
     } else {
-        elements.charCount.style.color = "var(--muted-foreground)";
+        elements.charCount.style.color = "var(--text-secondary)";
     }
 }
 
@@ -406,11 +457,21 @@ function updateCharCount() {
 // SCROLL
 // ========================================
 
-function scrollToBottom() {
-    elements.messagesWrapper.scrollTo({
-        top: elements.messagesWrapper.scrollHeight,
-        behavior: "smooth",
+function scrollToBottom(smooth = true) {
+    elements.chatArea.scrollTo({
+        top: elements.chatArea.scrollHeight,
+        behavior: smooth ? "smooth" : "auto",
     });
+}
+
+function handleScroll() {
+    const isNearBottom = elements.chatArea.scrollHeight - elements.chatArea.scrollTop - elements.chatArea.clientHeight < 100;
+    
+    if (isNearBottom) {
+        elements.scrollBottomBtn.style.display = "none";
+    } else {
+        elements.scrollBottomBtn.style.display = "flex";
+    }
 }
 
 // ========================================
@@ -450,7 +511,7 @@ function loadConversationHistory() {
             
             // Reconstruir chat visual
             if (state.conversationHistory.length > 0) {
-                removeWelcomeHeader();
+                removeWelcomeMessage();
                 
                 state.conversationHistory.forEach(msg => {
                     const sender = msg.role === "user" ? "user" : "bot";
@@ -462,6 +523,42 @@ function loadConversationHistory() {
         console.error("Erro ao carregar histórico:", error);
         state.conversationHistory = [];
     }
+}
+
+// ========================================
+// EXPORTAR CONVERSA
+// ========================================
+
+function handleExportChat() {
+    if (state.conversationHistory.length === 0) {
+        showToast("Nenhuma conversa para exportar", "error");
+        return;
+    }
+    
+    // Criar conteúdo do arquivo
+    let content = "# Conversa com Assistente IA\n\n";
+    content += `Data: ${new Date().toLocaleString("pt-BR")}\n\n`;
+    content += "---\n\n";
+    
+    state.conversationHistory.forEach((msg, index) => {
+        const role = msg.role === "user" ? "👤 Você" : "🤖 Assistente";
+        content += `### ${role}\n\n`;
+        content += `${msg.content}\n\n`;
+        content += "---\n\n";
+    });
+    
+    // Criar e baixar arquivo
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `conversa-ia-${new Date().getTime()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast("Conversa exportada com sucesso!", "success");
 }
 
 // ========================================
