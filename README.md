@@ -12,15 +12,16 @@ Chat profissional com Inteligência Artificial usando OpenAI GPT. Interface mode
 ## ✨ Características
 
 ### 🎨 Interface
-- ✅ Design moderno com gradientes vibrantes
+- ✅ **Design minimalista** inspirado em shadcn/ui
+- ✅ **Sistema de cores neutro** com suporte a tema claro/escuro automático
+- ✅ **Layout centralizado** (max-width 35rem) para melhor legibilidade
 - ✅ Totalmente responsivo (mobile, tablet, desktop)
-- ✅ Tema escuro otimizado com efeitos glassmorphism
 - ✅ Animações suaves e transições fluidas
-- ✅ Indicador de status em tempo real
+- ✅ Indicador de status flutuante
 - ✅ Notificações toast elegantes
 - ✅ Contador de caracteres
 - ✅ Auto-resize do textarea
-- ✅ Botões de ação rápida com hover effects
+- ✅ Tipografia otimizada e espaçamentos consistentes
 
 ### 🔒 Segurança
 - ✅ API Key protegida no backend
@@ -336,7 +337,18 @@ npm start
 
 ## 📝 Changelog
 
-### Versão 2.1.0 (Atual)
+### Versão 3.0.0 (Atual)
+
+#### 🎨 Redesign Completo
+- **Layout minimalista** inspirado em shadcn/ui e Next.js
+- **Sistema de design neutro** com variáveis CSS HSL
+- **Tema claro/escuro automático** via `prefers-color-scheme`
+- **Interface centralizada** (35rem) para melhor UX
+- **Tipografia otimizada** com espaçamentos consistentes
+- **Animações suaves** e transições fluidas
+- **Componentes simplificados** e código mais limpo
+
+### Versão 2.1.0
 
 #### ✨ Novidades
 - 🎨 **Design modernizado** com gradientes roxo/azul
@@ -421,15 +433,39 @@ Edite o prompt do sistema em `server.js`:
 
 ### Personalizando o Design
 
-Edite as variáveis CSS em `public/css/style.css`:
+O projeto usa um sistema de design baseado em variáveis CSS HSL, inspirado em shadcn/ui:
 
 ```css
 :root {
-  --accent-blue: #0969da;
-  --accent-green: #238636;
+  /* Cores principais */
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(0, 0%, 3.9%);
+  --primary: hsl(221, 83%, 53%);
+  --muted: hsl(0, 0%, 96.1%);
   /* ... */
 }
 ```
+
+#### Tema Claro/Escuro
+
+O tema escuro é ativado automaticamente via `prefers-color-scheme`:
+
+```css
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: hsl(0, 0%, 3.9%);
+    --foreground: hsl(0, 0%, 98%);
+    /* ... */
+  }
+}
+```
+
+#### Estrutura do Layout
+
+- **Container centralizado**: `max-width: 35rem` para melhor legibilidade
+- **Mensagens**: Máximo 80% da largura, alinhadas à esquerda (bot) ou direita (user)
+- **Input fixo**: Na parte inferior com auto-resize
+- **Status badge**: Flutuante no canto superior direito
 
 ### Adicionando Funcionalidades
 
