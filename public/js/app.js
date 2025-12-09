@@ -16,14 +16,11 @@ const CONFIG = {
 const elements = {
     input: document.getElementById("userInput"),
     submitBtn: document.getElementById("submitBtn"),
-    clearBtn: document.getElementById("clearBtn"),
     chatForm: document.getElementById("chatForm"),
-    messagesWrapper: document.getElementById("messagesWrapper"),
+    welcomeScreen: document.getElementById("welcomeScreen"),
+    chatScreen: document.getElementById("chatScreen"),
+    messagesContainer: document.getElementById("messagesContainer"),
     messagesList: document.getElementById("messagesList"),
-    welcomeHeader: document.getElementById("welcomeHeader"),
-    charCount: document.getElementById("charCount"),
-    statusDot: document.getElementById("statusDot"),
-    statusText: document.getElementById("statusText"),
     toast: document.getElementById("toast"),
 };
 
@@ -56,9 +53,6 @@ function setupEventListeners() {
     // Form submit
     elements.chatForm.addEventListener("submit", handleSendMessage);
     
-    // Botão limpar
-    elements.clearBtn.addEventListener("click", handleClearChat);
-    
     // Input - Enter para enviar
     elements.input.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -67,11 +61,8 @@ function setupEventListeners() {
         }
     });
     
-    // Input - auto resize e contador
-    elements.input.addEventListener("input", () => {
-        handleInputResize();
-        updateCharCount();
-    });
+    // Input - auto resize
+    elements.input.addEventListener("input", handleInputResize);
 }
 
 // ========================================
@@ -81,22 +72,11 @@ function setupEventListeners() {
 async function checkServerHealth() {
     try {
         const response = await fetch(CONFIG.HEALTH_CHECK_URL);
-        if (response.ok) {
-            updateStatus(true, "Online");
-        } else {
-            updateStatus(false, "Servidor com problemas");
-        }
+        state.isOnline = response.ok;
     } catch (error) {
-        updateStatus(false, "Offline");
+        state.isOnline = false;
         console.error("Erro ao verificar servidor:", error);
     }
-}
-
-function updateStatus(isOnline, text) {
-    state.isOnline = isOnline;
-    elements.statusDot.classList.toggle("online", isOnline);
-    elements.statusDot.classList.toggle("offline", !isOnline);
-    elements.statusText.textContent = text;
 }
 
 // ========================================
@@ -109,10 +89,7 @@ async function handleSendMessage(e) {
     const text = elements.input.value.trim();
     
     // Validações
-    if (!text) {
-        showToast("Digite uma mensagem", "error");
-        return;
-    }
+    if (!text) return;
     
     if (text.length > CONFIG.MAX_MESSAGE_LENGTH) {
         showToast(`Mensagem muito longa. Máximo ${CONFIG.MAX_MESSAGE_LENGTH} caracteres.`, "error");
@@ -129,8 +106,8 @@ async function handleSendMessage(e) {
         return;
     }
     
-    // Remove header de boas-vindas
-    removeWelcomeHeader();
+    // Mostrar tela de chat se estiver na tela de boas-vindas
+    showChatScreen();
     
     // Adiciona mensagem do usuário
     addMessage(text, "user");
@@ -140,7 +117,6 @@ async function handleSendMessage(e) {
     
     // Limpa input
     elements.input.value = "";
-    updateCharCount();
     handleInputResize();
     
     // Desabilita input durante envio
@@ -209,38 +185,21 @@ function addMessage(text, sender) {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add("message", sender);
     
-    // Container para conteúdo
-    const contentWrapper = document.createElement("div");
-    contentWrapper.classList.add("message-content");
+    const bubbleDiv = document.createElement("div");
+    bubbleDiv.classList.add("message-bubble");
+    
+    const contentDiv = document.createElement("div");
+    contentDiv.classList.add("message-content");
     
     // Processar markdown se for mensagem do bot
     if (sender === "bot") {
-        contentWrapper.innerHTML = formatMarkdown(text);
+        contentDiv.innerHTML = formatMarkdown(text);
     } else {
-        contentWrapper.textContent = text;
+        contentDiv.textContent = text;
     }
     
-    messageDiv.appendChild(contentWrapper);
-    
-    // Adicionar botão de copiar
-    if (sender === "bot" || sender === "user") {
-        const actionsDiv = document.createElement("div");
-        actionsDiv.classList.add("message-actions");
-        
-        const copyBtn = document.createElement("button");
-        copyBtn.classList.add("copy-btn-msg");
-        copyBtn.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-        `;
-        copyBtn.title = "Copiar mensagem";
-        copyBtn.onclick = () => copyMessage(text, copyBtn);
-        
-        actionsDiv.appendChild(copyBtn);
-        messageDiv.appendChild(actionsDiv);
-    }
+    bubbleDiv.appendChild(contentDiv);
+    messageDiv.appendChild(bubbleDiv);
     
     elements.messagesList.appendChild(messageDiv);
     scrollToBottom();
@@ -281,85 +240,39 @@ function formatMarkdown(text) {
 }
 
 // ========================================
-// COPIAR MENSAGEM
-// ========================================
-
-function copyMessage(text, button) {
-    navigator.clipboard.writeText(text).then(() => {
-        const originalHTML = button.innerHTML;
-        button.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-        `;
-        button.classList.add("copied");
-        
-        setTimeout(() => {
-            button.innerHTML = originalHTML;
-            button.classList.remove("copied");
-        }, 2000);
-        
-        showToast("Mensagem copiada!", "success");
-    }).catch(() => {
-        showToast("Erro ao copiar mensagem", "error");
-    });
-}
-
-// ========================================
 // TYPING LOADER
 // ========================================
 
 function addTypingLoader() {
-    const loaderDiv = document.createElement("div");
-    loaderDiv.classList.add("message", "bot");
-    loaderDiv.innerHTML = `
-        <div class="typing">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("message", "bot");
+    
+    const bubbleDiv = document.createElement("div");
+    bubbleDiv.classList.add("message-bubble");
+    
+    bubbleDiv.innerHTML = `
+        <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
         </div>
     `;
     
-    elements.messagesList.appendChild(loaderDiv);
+    messageDiv.appendChild(bubbleDiv);
+    elements.messagesList.appendChild(messageDiv);
     scrollToBottom();
     
-    return loaderDiv;
+    return messageDiv;
 }
 
 // ========================================
-// LIMPAR CHAT
+// MOSTRAR TELA DE CHAT
 // ========================================
 
-function handleClearChat() {
-    if (state.isLoading) {
-        showToast("Aguarde a resposta atual", "error");
-        return;
-    }
-    
-    if (state.conversationHistory.length === 0) {
-        showToast("Nenhuma conversa para limpar", "error");
-        return;
-    }
-    
-    if (confirm("Deseja limpar toda a conversa?")) {
-        elements.messagesList.innerHTML = "";
-        elements.welcomeHeader.style.display = "flex";
-        elements.messagesWrapper.classList.remove("has-messages");
-        
-        state.conversationHistory = [];
-        saveConversationHistory();
-        showToast("Conversa limpa com sucesso", "success");
-    }
-}
-
-// ========================================
-// REMOVER HEADER DE BOAS-VINDAS
-// ========================================
-
-function removeWelcomeHeader() {
-    if (elements.welcomeHeader.style.display !== "none") {
-        elements.welcomeHeader.style.display = "none";
-        elements.messagesWrapper.classList.add("has-messages");
+function showChatScreen() {
+    if (elements.welcomeScreen.style.display !== "none") {
+        elements.welcomeScreen.style.display = "none";
+        elements.chatScreen.style.display = "flex";
     }
 }
 
@@ -371,7 +284,6 @@ function setLoadingState(isLoading) {
     state.isLoading = isLoading;
     elements.input.disabled = isLoading;
     elements.submitBtn.disabled = isLoading;
-    elements.clearBtn.disabled = isLoading;
     
     if (!isLoading) {
         elements.input.focus();
@@ -388,27 +300,12 @@ function handleInputResize() {
 }
 
 // ========================================
-// CONTADOR DE CARACTERES
-// ========================================
-
-function updateCharCount() {
-    const count = elements.input.value.length;
-    elements.charCount.textContent = `${count} / ${CONFIG.MAX_MESSAGE_LENGTH}`;
-    
-    if (count > CONFIG.MAX_MESSAGE_LENGTH * 0.9) {
-        elements.charCount.style.color = "var(--destructive)";
-    } else {
-        elements.charCount.style.color = "var(--muted-foreground)";
-    }
-}
-
-// ========================================
 // SCROLL
 // ========================================
 
 function scrollToBottom() {
-    elements.messagesWrapper.scrollTo({
-        top: elements.messagesWrapper.scrollHeight,
+    elements.messagesContainer.scrollTo({
+        top: elements.messagesContainer.scrollHeight,
         behavior: "smooth",
     });
 }
@@ -450,7 +347,7 @@ function loadConversationHistory() {
             
             // Reconstruir chat visual
             if (state.conversationHistory.length > 0) {
-                removeWelcomeHeader();
+                showChatScreen();
                 
                 state.conversationHistory.forEach(msg => {
                     const sender = msg.role === "user" ? "user" : "bot";

@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Chat inteligente com IA - Converse com nosso assistente virtual">
-    <meta name="theme-color" content="#000000">
-    <title>AI Chatbot 🤖</title>
+    <meta name="description" content="Chat inteligente com IA">
+    <meta name="theme-color" content="#ffffff">
+    <title>Basic AI Chatbot Template</title>
 
     <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
@@ -17,68 +17,55 @@
 
 <body>
     <!-- Container principal -->
-    <main class="chat-container">
+    <div class="app-container">
         
-        <!-- Área de mensagens -->
-        <div class="messages-wrapper" id="messagesWrapper">
-            
-            <!-- Header inicial (aparece quando não há mensagens) -->
-            <div class="welcome-header" id="welcomeHeader">
-                <h1 class="welcome-title">Chat IA Assistente</h1>
-                <p class="welcome-description">
-                    Este é um chatbot com IA construído com <strong>Node.js</strong>, 
-                    <strong>Express</strong> e <strong>OpenAI API</strong>.
+        <!-- Tela de boas-vindas -->
+        <div class="welcome-screen" id="welcomeScreen">
+            <div class="welcome-content">
+                <h1 class="welcome-title">Basic AI Chatbot Template</h1>
+                <p class="welcome-text">
+                    This is an AI chatbot app template built with <strong>Next.js</strong>, the
+                    <strong>Vercel AI SDK</strong>, and <strong>Vercel KV</strong>.
                 </p>
                 <p class="welcome-hint">
-                    Configure sua API Key e envie uma mensagem para começar.
+                    Connect an API Key from your provider and send a message to get started.
                 </p>
             </div>
-
-            <!-- Lista de mensagens -->
-            <div class="messages-list" id="messagesList"></div>
-            
         </div>
 
-        <!-- Formulário de input -->
-        <form class="input-form" id="chatForm">
-            <div class="input-wrapper">
-                <textarea 
-                    id="userInput" 
-                    placeholder="Digite uma mensagem..."
-                    rows="1"
-                    maxlength="4000"
-                    class="message-input"
-                ></textarea>
-                
-                <button type="submit" class="submit-button" id="submitBtn" title="Enviar mensagem">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 19V5M5 12l7-7 7 7"/>
-                    </svg>
-                </button>
+        <!-- Área de chat -->
+        <div class="chat-screen" id="chatScreen" style="display: none;">
+            <!-- Mensagens -->
+            <div class="messages-container" id="messagesContainer">
+                <div class="messages-list" id="messagesList"></div>
             </div>
-            
-            <!-- Informações adicionais -->
-            <div class="input-footer">
-                <span class="char-count" id="charCount">0 / 4000</span>
-                <button type="button" class="clear-button" id="clearBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                    </svg>
-                    Limpar
-                </button>
-            </div>
-        </form>
+        </div>
 
-    </main>
+        <!-- Input fixo na parte inferior -->
+        <div class="input-container">
+            <form class="input-form" id="chatForm">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="userInput" 
+                        placeholder="Enter a message"
+                        rows="1"
+                        maxlength="4000"
+                        class="message-input"
+                    ></textarea>
+                    
+                    <button type="submit" class="submit-button" id="submitBtn" title="Send message">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 19V5M5 12l7-7 7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
 
     <!-- Toast notification -->
     <div class="toast" id="toast"></div>
-
-    <!-- Status indicator (canto superior direito) -->
-    <div class="status-badge" id="statusBadge">
-        <span class="status-dot" id="statusDot"></span>
-        <span class="status-text" id="statusText">Conectando...</span>
-    </div>
 
     <!-- JavaScript -->
     <script src="js/app.js"></script>
