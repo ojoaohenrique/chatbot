@@ -8,7 +8,10 @@ Chat profissional com Inteligência Artificial usando OpenAI GPT. Interface mode
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ---
-
+Sistema: Chat Setores Laguna
+Órgão: Prefeitura Municipal de Laguna
+Desenvolvedor: João Henrique Fanfa
+Licença: MIT
 ## ✨ Características
 
 ### 🎨 Interface
